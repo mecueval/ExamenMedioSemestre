@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    container_name: task-management-db
+    environment:
+      POSTGRES_DB: task-management
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5432:5432"
+    volumes:
+      - tm-data:/var/lib/postgresql/data
+
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: task-management-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: localhost@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    volumes:
+      - db-ui-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+  api:
+    build: .
+    container_name: task-management-api
+    environment:
+      DATABASE_URL: postgresql://root:root@db:5432/task-management
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  tm-data:
+  db-ui-data:
